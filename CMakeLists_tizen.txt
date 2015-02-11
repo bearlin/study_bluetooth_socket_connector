@@ -1,0 +1,89 @@
+cmake_minimum_required(VERSION 2.8)
+
+# -------------------------------------------------------------------
+IF(DEFINED ENV{MEEGO_SYS_ROOT})
+  message("...using variable 'MEEGO_SYS_ROOT'=$ENV{MEEGO_SYS_ROOT}")
+  set(MEEGO_SYS_ROOT $ENV{MEEGO_SYS_ROOT})
+ELSE()
+  message(FATAL_ERROR "### ERROR ### Not found variable 'MEEGO_SYS_ROOT'.  You must tell CMake where to find MEEGO_SYS_ROOT")
+ENDIF()
+include_directories( ${CMAKE_CURRENT_LIST_DIR}/include )
+
+IF(DEFINED ENV{MEEGO_TOOLCHAIN})
+  message("...using variable 'MEEGO_TOOLCHAIN'=$ENV{MEEGO_TOOLCHAIN}")
+ELSE()
+  message(FATAL_ERROR "### ERROR ### Not found variable 'MEEGO_TOOLCHAIN'.  You must tell CMake where to find MEEGO_TOOLCHAIN")
+ENDIF()
+
+set(STRIP_TOOL "$ENV{MEEGO_TOOLCHAIN}/bin/strip" CACHE STRING "Strip tool" FORCE)
+set(CMAKE_C_COMPILER   "$ENV{MEEGO_TOOLCHAIN}/bin/gcc")
+set(CMAKE_CXX_COMPILER "$ENV{MEEGO_TOOLCHAIN}/bin/g++")
+set(CMAKE_CXX_FLAGS "-Wall -Werror -m32 -fPIC") 
+set(CMAKE_C_FLAGS "-Wall -Werror -m32 -fPIC") 
+
+set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${MEEGO_SYS_ROOT}/usr/include")
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${MEEGO_SYS_ROOT}/lib")
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${MEEGO_SYS_ROOT}/usr/lib")
+set(CMAKE_FIND_ROOT_PATH "${MEEGO_SYS_ROOT}")
+# -------------------------------------------------------------------
+
+project(BTServices)
+  message(STATUS "*** PROJECT_NAME = ${PROJECT_NAME}")
+
+# ====================================================================================================================
+# Two simple macros that when called with an unset or empty (environment) variable will
+# halt the build.
+#
+# Call examples:
+#
+# CmakeCheckVar( NameOfSomeVariable)
+#
+# CmakeCheckEnvVar( NameOfEnvironmentVariable)
+#
+#
+# TODO: move these macros to a more suitable location.
+# ====================================================================================================================
+macro( CmakeCheckVar var)
+
+  if( NOT DEFINED ${var})
+    message( FATAL_ERROR "variable ${var} is not set.")
+  endif()
+  if (${var} STREQUAL "")
+    message( FATAL_ERROR "variable ${var} is empty.")
+  endif()
+
+  # message( "Variable ${var} has value ${${var}}")
+endmacro()
+
+macro( CmakeCheckEnvVar var)
+  #message( "env name ${var} value $ENV{${var}}")
+
+  set( what $ENV{${var}})
+  #message( "what = ${what} ${${what}}")
+
+  if( "${what}" STREQUAL "")
+    message( FATAL_ERROR "Environment variable ${var} is empty or not set.")
+  endif()
+
+endmacro()
+
+macro( Halt)
+  message( "")
+  message( "++++++++++++++++++++++++++++++++++++++++++++")
+  message( "STOP STOP STOP STOP STOP STOP STOP STOP STOP")
+  message( "++++++++++++++++++++++++++++++++++++++++++++")
+  message( "")
+  message( FATAL_ERROR "Halt called.")
+endmacro()
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+include(${CMAKE_CURRENT_LIST_DIR}/Util-Conf.cmake)
+
+set(BTServices_ROOT ${CMAKE_CURRENT_LIST_DIR} CACHE STRING "BTServices root directory")
+  #message(STATUS "*** BTServices_ROOT = ${BTServices_ROOT}")
+
+# Tools 
+add_subdirectory(
+	${CMAKE_CURRENT_SOURCE_DIR}/Tools 
+	${CMAKE_CURRENT_BINARY_DIR}/Tools)
